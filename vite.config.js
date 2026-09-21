@@ -47,8 +47,10 @@ function apiEndpoints() {
 }
 
 export default defineConfig(({ mode }) => {
+  const keys = ['MYSQL_URL', 'MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_DATABASE', 'MYSQL_USER', 'MYSQL_PASSWORD']
+  for (const key of keys) delete process.env[key]
   const env = loadEnv(mode, __dirname, '')
-  for (const key of ['MYSQL_URL', 'MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_DATABASE', 'MYSQL_USER', 'MYSQL_PASSWORD']) {
+  for (const key of keys) {
     if (env[key]) process.env[key] = env[key]
   }
   return {
