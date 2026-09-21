@@ -366,6 +366,31 @@ select {
   color: var(--ink);
 }
 
+.field.locked input {
+  background: #efe6d4;
+  color: var(--muted);
+  cursor: default;
+}
+
+.mis-pena {
+  display: grid;
+  gap: 8px;
+}
+
+.mis-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.danger {
+  background: var(--wine);
+  color: #fff8ea;
+  border: 0;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

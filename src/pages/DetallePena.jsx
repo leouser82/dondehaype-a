@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { obtenerPena } from '../lib/db'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
+import { borrarPena, esMia, obtenerPena } from '../lib/db'
 import { estaVigente, formatearFecha, formatearPrecio } from '../lib/geo'
 
 export default function DetallePena() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const { usuario } = useAuth()
   const [pena, setPena] = useState(null)
   const [error, setError] = useState('')
+  const [borrando, setBorrando] = useState(false)
 
   useEffect(() => {
     obtenerPena(id)
@@ -17,10 +21,23 @@ export default function DetallePena() {
       .catch(() => setError('No se pudo cargar la peña.'))
   }, [id])
 
-  if (error) return <section className="page">{error}</section>
+  if (!pena && error) return <section className="page">{error}</section>
   if (!pena) return <section className="page">Cargando el fogón…</section>
 
   const vigente = estaVigente(pena)
+  const mia = esMia(pena, usuario)
+
+  async function onBorrar() {
+    if (!window.confirm(`¿Borrar “${pena.institucion}”? Esta acción no se puede deshacer.`)) return
+    setBorrando(true)
+    try {
+      await borrarPena(pena.id, usuario)
+      navigate('/mis-penas')
+    } catch (err) {
+      setError(err.message || 'No se pudo borrar la peña.')
+      setBorrando(false)
+    }
+  }
 
   return (
     <section className="page detalle">
@@ -78,6 +95,16 @@ export default function DetallePena() {
           <a href={pena.origenUrl} target="_blank" rel="noreferrer">
             Ver fuente original
           </a>
+        </p>
+      ) : null}
+      {mia ? (
+        <p className="mis-actions">
+          <Link className="ghost" to={`/pena/${pena.id}/editar`}>
+            Editar
+          </Link>
+          <button type="button" className="danger" onClick={onBorrar} disabled={borrando}>
+            {borrando ? 'Borrando…' : 'Borrar'}
+          </button>
         </p>
       ) : null}
       <Link to="/buscar" className="ghost">

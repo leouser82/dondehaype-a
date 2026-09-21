@@ -1,0 +1,18 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: dondehaypenia
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: pena
+      MYSQL_DATABASE: dondehaypenia
+      MYSQL_USER: pena
+      MYSQL_PASSWORD: pena
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - dondehaypenia-data:/var/lib/mysql
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+volumes:
+  dondehaypenia-data:

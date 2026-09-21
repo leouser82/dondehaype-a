@@ -2,15 +2,28 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
+import { handlePenasApi } from './server/penasApi.js'
+import { getPool } from './server/mysql.js'
 import { scrapePenas } from './server/scrapePenas.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-function penasWebEndpoint() {
+function apiEndpoints() {
   return {
-    name: 'penas-web-endpoint',
+    name: 'penas-api-endpoints',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        try {
+          const handled = await handlePenasApi(req, res)
+          if (handled) return
+        } catch (error) {
+          if (!res.writableEnded) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ error: error.message || 'api' }))
+          }
+          return
+        }
         const pathName = (req.url || '').split('?')[0]
         if (pathName !== '/api/penas-web') return next()
         try {
@@ -26,12 +39,18 @@ function penasWebEndpoint() {
           res.end(JSON.stringify({ penas: [], error: error.message || 'scrape' }))
         }
       })
+      getPool().catch((error) => {
+        console.warn('[mysql] todavía no hay conexión:', error.code || error.message)
+      })
     },
   }
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, __dirname, 'VITE_')
+  const env = loadEnv(mode, __dirname, '')
+  for (const key of ['MYSQL_URL', 'MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_DATABASE', 'MYSQL_USER', 'MYSQL_PASSWORD']) {
+    if (env[key]) process.env[key] = env[key]
+  }
   return {
     envDir: __dirname,
     define: {
@@ -40,6 +59,6 @@ export default defineConfig(({ mode }) => {
           '129434361758-rt6f26mvfdva1d51vafinftgfgbj4jpi.apps.googleusercontent.com',
       ),
     },
-    plugins: [react(), penasWebEndpoint()],
+    plugins: [react(), apiEndpoints()],
   }
 })

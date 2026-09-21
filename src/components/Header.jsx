@@ -21,6 +21,8 @@ export default function Header() {
           Cerca
         </NavLink>
         <NavLink to="/buscar">Buscar</NavLink>
+        {usuario ? <NavLink to="/mis-penas">Mis peñas</NavLink> : null}
+        {usuario ? <NavLink to="/nueva">Publicar</NavLink> : null}
       </nav>
       <div className="auth-box">
         {usuario ? (

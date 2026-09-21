@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import MapPicker from '../components/MapPicker'
 import TagInput from '../components/TagInput'
-import { PROVINCIAS, TIPOS_EVENTO } from '../data/provincias'
+import { TIPOS_EVENTO } from '../data/provincias'
 import LoginMenu from '../components/LoginMenu'
 import { useAuth } from '../lib/auth'
-import { guardarPena } from '../lib/db'
+import { actualizarPena, esMia, guardarPena, obtenerPena } from '../lib/db'
 
 const VACIO = {
   tipoEvento: 'Peña',
@@ -26,18 +26,74 @@ const VACIO = {
 }
 
 export default function NuevaPena() {
-  const { usuario } = useAuth()
+  const { id } = useParams()
+  const { usuario, cargando } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(VACIO)
   const [flyer, setFlyer] = useState(null)
   const [preview, setPreview] = useState('')
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [leyendoLugar, setLeyendoLugar] = useState(false)
+  const [cargandoPena, setCargandoPena] = useState(Boolean(id))
+
+  useEffect(() => {
+    if (!id) {
+      setForm(VACIO)
+      setPreview('')
+      setCargandoPena(false)
+      return undefined
+    }
+    let cancel = false
+    setCargandoPena(true)
+    obtenerPena(id)
+      .then((pena) => {
+        if (cancel) return
+        if (!pena || pena.fuente === 'internet') {
+          setError('No encontramos esa peña.')
+          return
+        }
+        if (usuario && !esMia(pena, usuario)) {
+          setError('Solo podés editar las peñas que cargaste vos.')
+          return
+        }
+        setForm({
+          tipoEvento: pena.tipoEvento || 'Peña',
+          musicos: pena.musicos || [],
+          gruposBaile: pena.gruposBaile || [],
+          provincia: pena.provincia || '',
+          localidad: pena.localidad || '',
+          ciudad: pena.ciudad || '',
+          lat: pena.lat,
+          lng: pena.lng,
+          valorAnticipada: pena.valorAnticipada ?? '',
+          valorPuerta: pena.valorPuerta ?? '',
+          reservaMesa: Boolean(pena.reservaMesa),
+          institucion: pena.institucion || '',
+          fechaDesde: pena.fechaDesde || '',
+          fechaHasta: pena.fechaHasta || '',
+          horario: pena.horario || '21:00',
+          flyerUrl: pena.flyerUrl || '',
+        })
+        setPreview(pena.flyerUrl || '')
+      })
+      .catch(() => {
+        if (!cancel) setError('No se pudo cargar la peña.')
+      })
+      .finally(() => {
+        if (!cancel) setCargandoPena(false)
+      })
+    return () => {
+      cancel = true
+    }
+  }, [id, usuario])
+
+  if (cargando) return <section className="page">Cargando…</section>
 
   if (!usuario) {
     return (
       <section className="page">
-        <h1>Publicar una peña</h1>
+        <h1>{id ? 'Editar peña' : 'Publicar una peña'}</h1>
         <p className="lead">Para cargar un fogón tenés que hacer login. Elegí Google para entrar.</p>
         <LoginMenu variant="page" />
       </section>
@@ -48,11 +104,35 @@ export default function NuevaPena() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  async function onPickMap(lat, lng) {
+    setForm((prev) => ({ ...prev, lat, lng }))
+    setLeyendoLugar(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/reverse-geo?lat=${lat}&lng=${lng}`)
+      const place = await response.json()
+      if (!response.ok) throw new Error(place.error || 'No se pudo leer el lugar')
+      setForm((prev) => ({
+        ...prev,
+        lat,
+        lng,
+        provincia: place.provincia || prev.provincia,
+        localidad: place.localidad || prev.localidad,
+        ciudad: place.ciudad || prev.ciudad,
+        institucion: place.institucion || prev.institucion,
+      }))
+    } catch (err) {
+      setError(err.message || 'No se pudo leer el lugar del mapa.')
+    } finally {
+      setLeyendoLugar(false)
+    }
+  }
+
   async function onSubmit(event) {
     event.preventDefault()
     setError('')
-    if (!form.provincia || !form.localidad || !form.ciudad) {
-      setError('Completá provincia, localidad y ciudad.')
+    if (!form.provincia || !form.localidad || !form.ciudad || !form.institucion) {
+      setError('Marcá el lugar en el mapa para completar provincia, localidad, ciudad e institución.')
       return
     }
     if (form.lat == null || form.lng == null) {
@@ -69,7 +149,9 @@ export default function NuevaPena() {
     }
     setEnviando(true)
     try {
-      const pena = await guardarPena(form, flyer, usuario)
+      const pena = id
+        ? await actualizarPena(id, form, flyer, usuario)
+        : await guardarPena(form, flyer, usuario)
       navigate(`/pena/${pena.id}`)
     } catch (err) {
       setError(err.message || 'No se pudo guardar la peña.')
@@ -78,10 +160,16 @@ export default function NuevaPena() {
     }
   }
 
+  if (cargandoPena) return <section className="page">Cargando el fogón…</section>
+
   return (
     <section className="page form-page">
-      <h1>Publicar una peña</h1>
-      <p className="lead">Completá los datos del fogón para que la vecindad la encuentre.</p>
+      <h1>{id ? 'Editar peña' : 'Publicar una peña'}</h1>
+      <p className="lead">
+        {id
+          ? 'Actualizá los datos del fogón. El lugar se cambia haciendo clic en el mapa.'
+          : 'Completá los datos del fogón. El mapa se ubica donde estás; al marcar el evento se completan los campos de arriba.'}
+      </p>
       <form className="pena-form" onSubmit={onSubmit}>
         <label className="field">
           Flyer (imagen)
@@ -91,7 +179,7 @@ export default function NuevaPena() {
             onChange={(e) => {
               const file = e.target.files?.[0]
               setFlyer(file || null)
-              setPreview(file ? URL.createObjectURL(file) : '')
+              setPreview(file ? URL.createObjectURL(file) : form.flyerUrl || '')
             }}
           />
         </label>
@@ -129,37 +217,32 @@ export default function NuevaPena() {
         />
 
         <div className="grid-2">
-          <label className="field">
+          <label className="field locked">
             Provincia
-            <select value={form.provincia} onChange={(e) => set('provincia', e.target.value)} required>
-              <option value="">Elegí provincia</option>
-              {PROVINCIAS.map((provincia) => (
-                <option key={provincia} value={provincia}>
-                  {provincia}
-                </option>
-              ))}
-            </select>
+            <input value={form.provincia} readOnly placeholder="Se completa con el mapa" />
           </label>
-          <label className="field">
+          <label className="field locked">
             Localidad
-            <input value={form.localidad} onChange={(e) => set('localidad', e.target.value)} required />
+            <input value={form.localidad} readOnly placeholder="Se completa con el mapa" />
           </label>
-          <label className="field">
+          <label className="field locked">
             Ciudad
-            <input value={form.ciudad} onChange={(e) => set('ciudad', e.target.value)} required />
+            <input value={form.ciudad} readOnly placeholder="Se completa con el mapa" />
           </label>
-          <label className="field">
+          <label className="field locked">
             Institución organizadora
-            <input value={form.institucion} onChange={(e) => set('institucion', e.target.value)} required />
+            <input value={form.institucion} readOnly placeholder="Se completa con el mapa" />
           </label>
         </div>
+        {leyendoLugar ? <p className="hint">Leyendo el lugar del mapa…</p> : null}
 
         <fieldset>
           <legend>Ubicación exacta</legend>
           <MapPicker
             lat={form.lat}
             lng={form.lng}
-            onChange={(lat, lng) => setForm((prev) => ({ ...prev, lat, lng }))}
+            locateUser={!id}
+            onChange={onPickMap}
           />
         </fieldset>
 
@@ -209,8 +292,8 @@ export default function NuevaPena() {
         </div>
 
         {error ? <p className="error">{error}</p> : null}
-        <button type="submit" className="primary" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Publicar peña'}
+        <button type="submit" className="primary" disabled={enviando || leyendoLugar}>
+          {enviando ? 'Guardando…' : id ? 'Guardar cambios' : 'Publicar peña'}
         </button>
       </form>
     </section>

@@ -1,8 +1,5 @@
-import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { db, firebaseReady, storage } from './firebase'
-
 const STORAGE_KEY = 'dondehaypena.penas'
+const WEB_KEY = 'dondehaypena.web'
 
 function esFicticia(pena) {
   return String(pena?.id || '').startsWith('seed-') || pena?.creadoPor?.uid === 'seed'
@@ -19,91 +16,86 @@ function leerLocal() {
   }
 }
 
-function escribirLocal(penas) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(penas.filter((pena) => !esFicticia(pena))))
+export function esMia(pena, usuario) {
+  return Boolean(usuario?.uid && pena?.creadoPor?.uid && pena.creadoPor.uid === usuario.uid)
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options,
+  })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(data.error || data.detail || 'Error de base de datos')
+  }
+  return data
 }
 
 export function suscribirPenas(callback) {
-  if (firebaseReady && db) {
-    const q = query(collection(db, 'penas'), orderBy('fechaDesde', 'asc'))
-    return onSnapshot(
-      q,
-      (snap) => {
-        callback(snap.docs.map((item) => ({ id: item.id, ...item.data(), fuente: 'vecinos' })))
-      },
-      () => callback(leerLocal().map((pena) => ({ ...pena, fuente: pena.fuente || 'vecinos' }))),
-    )
+  let cancel = false
+  const refresh = async () => {
+    try {
+      const data = await api('/api/penas')
+      if (!cancel) callback(Array.isArray(data.penas) ? data.penas : [])
+    } catch {
+      if (!cancel) callback(leerLocal().map((pena) => ({ ...pena, fuente: pena.fuente || 'vecinos' })))
+    }
   }
-
-  const refresh = () => callback(leerLocal().map((pena) => ({ ...pena, fuente: pena.fuente || 'vecinos' })))
   refresh()
-  const onStorage = (event) => {
-    if (event.key === STORAGE_KEY) refresh()
-  }
-  window.addEventListener('storage', onStorage)
+  const timer = setInterval(refresh, 20000)
   window.addEventListener('penas-local-updated', refresh)
   return () => {
-    window.removeEventListener('storage', onStorage)
+    cancel = true
+    clearInterval(timer)
     window.removeEventListener('penas-local-updated', refresh)
   }
 }
 
 export async function obtenerPena(id) {
   const web = leerWeb().find((pena) => pena.id === id)
-  if (web) return web
-  if (firebaseReady && db) {
-    const snap = await getDoc(doc(db, 'penas', id))
-    if (snap.exists()) return { id: snap.id, ...snap.data(), fuente: 'vecinos' }
+  try {
+    const data = await api(`/api/penas/${encodeURIComponent(id)}`)
+    if (data.pena) return data.pena
+  } catch {
+    if (web) return web
+    return leerLocal().find((pena) => pena.id === id) || null
   }
-  return leerLocal().find((pena) => pena.id === id) || null
+  return web || null
+}
+
+export async function misPenas(uid) {
+  const data = await api(`/api/penas?uid=${encodeURIComponent(uid)}`)
+  return Array.isArray(data.penas) ? data.penas : []
 }
 
 export async function guardarPena(datos, flyerFile, usuario) {
-  let flyerUrl = datos.flyerUrl || ''
-  if (flyerFile) {
-    flyerUrl = firebaseReady && storage ? await subirFlyer(flyerFile, usuario.uid) : await archivoADataUrl(flyerFile)
-  }
-
-  const payload = {
-    fuente: 'vecinos',
-    tipoEvento: datos.tipoEvento,
-    musicos: datos.musicos.filter(Boolean),
-    gruposBaile: datos.gruposBaile.filter(Boolean),
-    provincia: datos.provincia,
-    localidad: datos.localidad,
-    ciudad: datos.ciudad,
-    lat: Number(datos.lat),
-    lng: Number(datos.lng),
-    valorAnticipada: datos.valorAnticipada === '' ? null : Number(datos.valorAnticipada),
-    valorPuerta: datos.valorPuerta === '' ? null : Number(datos.valorPuerta),
-    reservaMesa: Boolean(datos.reservaMesa),
-    institucion: datos.institucion,
-    fechaDesde: datos.fechaDesde,
-    fechaHasta: datos.fechaHasta,
-    horario: datos.horario,
-    flyerUrl,
-    creadoPor: {
-      uid: usuario.uid,
-      nombre: usuario.displayName || usuario.nombre || 'Vecino',
-      email: usuario.email || '',
-    },
-  }
-
-  if (firebaseReady && db) {
-    const refDoc = await addDoc(collection(db, 'penas'), {
-      ...payload,
-      createdAt: serverTimestamp(),
-    })
-    return { id: refDoc.id, ...payload }
-  }
-
-  const pena = { id: crypto.randomUUID(), ...payload, createdAt: Date.now() }
-  escribirLocal([pena, ...leerLocal()])
+  const flyerUrl = flyerFile ? await archivoADataUrl(flyerFile) : datos.flyerUrl || ''
+  const data = await api('/api/penas', {
+    method: 'POST',
+    body: JSON.stringify({ ...datos, flyerUrl, usuario }),
+  })
   window.dispatchEvent(new Event('penas-local-updated'))
-  return pena
+  return data.pena
 }
 
-const WEB_KEY = 'dondehaypena.web'
+export async function actualizarPena(id, datos, flyerFile, usuario) {
+  const flyerUrl = flyerFile ? await archivoADataUrl(flyerFile) : datos.flyerUrl || ''
+  const data = await api(`/api/penas/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ ...datos, flyerUrl, usuario }),
+  })
+  window.dispatchEvent(new Event('penas-local-updated'))
+  return data.pena
+}
+
+export async function borrarPena(id, usuario) {
+  await api(`/api/penas/${encodeURIComponent(id)}?uid=${encodeURIComponent(usuario.uid)}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ usuario, uid: usuario.uid }),
+  })
+  window.dispatchEvent(new Event('penas-local-updated'))
+}
 
 export function recordarWeb(penas) {
   const prev = leerWeb()
@@ -118,13 +110,6 @@ export function leerWeb() {
   } catch {
     return []
   }
-}
-
-async function subirFlyer(file, uid) {
-  const path = `flyers/${uid}/${Date.now()}-${file.name}`
-  const storageRef = ref(storage, path)
-  await uploadBytes(storageRef, file)
-  return getDownloadURL(storageRef)
 }
 
 function archivoADataUrl(file) {
