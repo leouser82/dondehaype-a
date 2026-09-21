@@ -1,4 +1,6 @@
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+const CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '129434361758-rt6f26mvfdva1d51vafinftgfgbj4jpi.apps.googleusercontent.com'
 
 export const googleClientReady = Boolean(CLIENT_ID)
 

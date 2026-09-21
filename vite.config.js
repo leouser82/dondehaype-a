@@ -1,6 +1,10 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { scrapePenas } from './server/scrapePenas.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function penasWebEndpoint() {
   return {
@@ -26,6 +30,16 @@ function penasWebEndpoint() {
   }
 }
 
-export default defineConfig({
-  plugins: [react(), penasWebEndpoint()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, __dirname, 'VITE_')
+  return {
+    envDir: __dirname,
+    define: {
+      'import.meta.env.VITE_GOOGLE_CLIENT_ID': JSON.stringify(
+        env.VITE_GOOGLE_CLIENT_ID ||
+          '129434361758-rt6f26mvfdva1d51vafinftgfgbj4jpi.apps.googleusercontent.com',
+      ),
+    },
+    plugins: [react(), penasWebEndpoint()],
+  }
 })
