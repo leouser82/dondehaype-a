@@ -27,7 +27,13 @@ async function api(path, options = {}) {
   })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
-    throw new Error(data.error || data.detail || 'Error de base de datos')
+    throw new Error(
+      data.error ||
+        data.detail ||
+        (response.status === 404
+          ? 'La API no está publicada en el servidor. Subí la carpeta api y el .htaccess.'
+          : 'Error de base de datos'),
+    )
   }
   return data
 }

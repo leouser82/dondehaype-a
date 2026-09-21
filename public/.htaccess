@@ -1,0 +1,13 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^api/reverse-geo/?$ api/reverse-geo.php [L,QSA]
+RewriteRule ^api/penas-web/?$ api/penas-web.php [L,QSA]
+RewriteRule ^api/penas/?$ api/penas.php [L,QSA]
+RewriteRule ^api/penas/([^/]+)/?$ api/penas.php?id=$1 [L,QSA]
+
+RewriteRule ^ index.html [L]
