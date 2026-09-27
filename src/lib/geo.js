@@ -82,6 +82,17 @@ export function coincideFiltro(pena, { q = '', tipo = '', provincia = '', locali
   return true
 }
 
+export function whatsappUrl(telefono) {
+  let n = String(telefono || '').replace(/\D/g, '')
+  if (!n) return ''
+  if (n.startsWith('00')) n = n.slice(2)
+  if (n.startsWith('54')) n = n.slice(2)
+  if (n.startsWith('0')) n = n.slice(1)
+  n = n.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2')
+  if (!n.startsWith('9')) n = `9${n}`
+  return `https://wa.me/54${n}`
+}
+
 export function formatearPrecio(valor) {
   if (valor === '' || valor == null || Number.isNaN(Number(valor))) return 'A confirmar'
   return new Intl.NumberFormat('es-AR', {

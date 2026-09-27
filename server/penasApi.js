@@ -84,6 +84,7 @@ function payloadFromBody(body) {
     valor_puerta: body.valorPuerta === '' || body.valorPuerta == null ? null : Number(body.valorPuerta),
     reserva_mesa: body.reservaMesa ? 1 : 0,
     institucion: String(body.institucion || '').trim().slice(0, 255) || null,
+    telefono: String(body.telefono || '').trim().slice(0, 40) || null,
     fecha_desde: String(body.fechaDesde || '').slice(0, 10),
     fecha_hasta: String(body.fechaHasta || '').slice(0, 10),
     horario: String(body.horario || '21:00').slice(0, 8),
@@ -178,9 +179,9 @@ export async function handlePenasApi(req, res) {
     await pool.query(
       `INSERT INTO penas (
         id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad, calle,
-        lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion,
+        lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion, telefono,
         fecha_desde, fecha_hasta, horario, flyer_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         uid,
@@ -197,6 +198,7 @@ export async function handlePenasApi(req, res) {
         payload.valor_puerta,
         payload.reserva_mesa,
         payload.institucion,
+        payload.telefono,
         payload.fecha_desde,
         payload.fecha_hasta,
         payload.horario,
@@ -237,7 +239,7 @@ export async function handlePenasApi(req, res) {
     await pool.query(
       `UPDATE penas SET
         tipo_evento = ?, musicos = ?, grupos_baile = ?, provincia = ?, localidad = ?, ciudad = ?, calle = ?,
-        lat = ?, lng = ?, valor_anticipada = ?, valor_puerta = ?, reserva_mesa = ?, institucion = ?,
+        lat = ?, lng = ?, valor_anticipada = ?, valor_puerta = ?, reserva_mesa = ?, institucion = ?, telefono = ?,
         fecha_desde = ?, fecha_hasta = ?, horario = ?, flyer_url = ?
        WHERE id = ? AND user_uid = ?`,
       [
@@ -254,6 +256,7 @@ export async function handlePenasApi(req, res) {
         payload.valor_puerta,
         payload.reserva_mesa,
         payload.institucion,
+        payload.telefono,
         payload.fecha_desde,
         payload.fecha_hasta,
         payload.horario,

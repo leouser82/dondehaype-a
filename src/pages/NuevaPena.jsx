@@ -21,6 +21,7 @@ const VACIO = {
   valorPuerta: '',
   reservaMesa: false,
   institucion: '',
+  telefono: '',
   fechaDesde: '',
   fechaHasta: '',
   horario: '21:00',
@@ -72,6 +73,7 @@ export default function NuevaPena() {
           valorPuerta: pena.valorPuerta ?? '',
           reservaMesa: Boolean(pena.reservaMesa),
           institucion: pena.institucion || '',
+          telefono: pena.telefono || '',
           fechaDesde: pena.fechaDesde || '',
           fechaHasta: pena.fechaHasta || '',
           horario: pena.horario || '21:00',
@@ -298,6 +300,15 @@ export default function NuevaPena() {
               onChange={(e) => set('institucion', e.target.value)}
               placeholder="Ej: Centro Tradicionalista El Algarrobo"
               maxLength={255}
+            />
+          </label>
+          <label className="field">
+            Teléfono
+            <input
+              value={form.telefono}
+              onChange={(e) => set('telefono', e.target.value)}
+              placeholder="Ej: 11 5555-1234"
+              maxLength={40}
             />
           </label>
         </div>

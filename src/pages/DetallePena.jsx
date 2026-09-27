@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { borrarPena, esMia, obtenerPena } from '../lib/db'
-import { estaVigente, formatearFecha, formatearPrecio } from '../lib/geo'
+import { estaVigente, formatearFecha, formatearPrecio, whatsappUrl } from '../lib/geo'
 
 export default function DetallePena() {
   const { id } = useParams()
@@ -26,6 +26,7 @@ export default function DetallePena() {
 
   const vigente = estaVigente(pena)
   const mia = esMia(pena, usuario)
+  const whatsapp = whatsappUrl(pena.telefono)
 
   async function onBorrar() {
     if (!window.confirm(`¿Borrar “${pena.institucion}”? Esta acción no se puede deshacer.`)) return
@@ -73,6 +74,13 @@ export default function DetallePena() {
           <dd>{pena.reservaMesa ? 'Sí' : 'No'}</dd>
         </div>
       </dl>
+      {whatsapp ? (
+        <p>
+          <a href={whatsapp} target="_blank" rel="noreferrer">
+            {pena.telefono}
+          </a>
+        </p>
+      ) : null}
       {pena.musicos?.length ? (
         <p>
           <strong>Músicos:</strong> {pena.musicos.join(', ')}

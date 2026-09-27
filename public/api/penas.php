@@ -78,6 +78,7 @@ function row_to_pena($row) {
     'valorPuerta' => $row['valor_puerta'] === null ? null : (float) $row['valor_puerta'],
     'reservaMesa' => !empty($row['reserva_mesa']),
     'institucion' => $row['institucion'] ?? '',
+    'telefono' => $row['telefono'] ?? '',
     'fechaDesde' => as_date($row['fecha_desde'] ?? ''),
     'fechaHasta' => as_date($row['fecha_hasta'] ?? ''),
     'horario' => $row['horario'] ?? '',
@@ -155,6 +156,7 @@ function payload_from_body($body) {
     'valor_puerta' => ($body['valorPuerta'] === '' || !isset($body['valorPuerta'])) ? null : (float) $body['valorPuerta'],
     'reserva_mesa' => !empty($body['reservaMesa']) ? 1 : 0,
     'institucion' => (($inst = substr(trim((string) ($body['institucion'] ?? '')), 0, 255)) === '' ? null : $inst),
+    'telefono' => (($tel = substr(trim((string) ($body['telefono'] ?? '')), 0, 40)) === '' ? null : $tel),
     'fecha_desde' => substr((string) ($body['fechaDesde'] ?? ''), 0, 10),
     'fecha_hasta' => substr((string) ($body['fechaHasta'] ?? ''), 0, 10),
     'horario' => substr((string) ($body['horario'] ?? '21:00'), 0, 8),
@@ -221,15 +223,15 @@ try {
     $stmt = $pdo->prepare(
       'INSERT INTO penas (
         id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad, calle,
-        lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion,
+        lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion, telefono,
         fecha_desde, fecha_hasta, horario, flyer_url
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
       $newId, $uid, $payload['tipo_evento'], $payload['musicos'], $payload['grupos_baile'],
       $payload['provincia'], $payload['localidad'], $payload['ciudad'], $payload['calle'],
       $payload['lat'], $payload['lng'], $payload['valor_anticipada'], $payload['valor_puerta'],
-      $payload['reserva_mesa'], $payload['institucion'], $payload['fecha_desde'],
+      $payload['reserva_mesa'], $payload['institucion'], $payload['telefono'], $payload['fecha_desde'],
       $payload['fecha_hasta'], $payload['horario'], $flyer,
     ]);
     ok(['pena' => row_to_pena(fetch_pena($pdo, $newId))], 201);
@@ -248,7 +250,7 @@ try {
     $stmt = $pdo->prepare(
       'UPDATE penas SET
         tipo_evento=?, musicos=?, grupos_baile=?, provincia=?, localidad=?, ciudad=?, calle=?,
-        lat=?, lng=?, valor_anticipada=?, valor_puerta=?, reserva_mesa=?, institucion=?,
+        lat=?, lng=?, valor_anticipada=?, valor_puerta=?, reserva_mesa=?, institucion=?, telefono=?,
         fecha_desde=?, fecha_hasta=?, horario=?, flyer_url=?
        WHERE id=? AND user_uid=?'
     );
@@ -256,7 +258,7 @@ try {
       $payload['tipo_evento'], $payload['musicos'], $payload['grupos_baile'],
       $payload['provincia'], $payload['localidad'], $payload['ciudad'], $payload['calle'],
       $payload['lat'], $payload['lng'], $payload['valor_anticipada'], $payload['valor_puerta'],
-      $payload['reserva_mesa'], $payload['institucion'], $payload['fecha_desde'],
+      $payload['reserva_mesa'], $payload['institucion'], $payload['telefono'], $payload['fecha_desde'],
       $payload['fecha_hasta'], $payload['horario'], $flyer, $id, $uid,
     ]);
     ok(['pena' => row_to_pena(fetch_pena($pdo, $id))]);

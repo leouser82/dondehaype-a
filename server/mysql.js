@@ -58,6 +58,7 @@ async function ensureTables(conn) {
       valor_puerta DECIMAL(12, 2) NULL,
       reserva_mesa TINYINT(1) NOT NULL DEFAULT 0,
       institucion VARCHAR(255) NULL DEFAULT NULL,
+      telefono VARCHAR(40) NULL DEFAULT NULL,
       fecha_desde DATE NOT NULL,
       fecha_hasta DATE NOT NULL,
       horario VARCHAR(8) NOT NULL DEFAULT '21:00',
@@ -78,6 +79,9 @@ async function connectOnce(cfg) {
     try {
       await ensureTables(conn)
       await conn.query('ALTER TABLE penas ADD COLUMN calle VARCHAR(255) NULL DEFAULT NULL AFTER ciudad').catch((error) => {
+        if (error?.code !== 'ER_DUP_FIELDNAME' && error?.errno !== 1060) throw error
+      })
+      await conn.query('ALTER TABLE penas ADD COLUMN telefono VARCHAR(40) NULL DEFAULT NULL AFTER institucion').catch((error) => {
         if (error?.code !== 'ER_DUP_FIELDNAME' && error?.errno !== 1060) throw error
       })
     } finally {
@@ -135,6 +139,7 @@ export function rowToPena(row) {
     valorPuerta: row.valor_puerta == null ? null : Number(row.valor_puerta),
     reservaMesa: Boolean(row.reserva_mesa),
     institucion: row.institucion || '',
+    telefono: row.telefono || '',
     fechaDesde: asDate(row.fecha_desde),
     fechaHasta: asDate(row.fecha_hasta),
     horario: row.horario || '',
