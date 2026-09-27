@@ -82,7 +82,7 @@ function payloadFromBody(body) {
     valor_anticipada: body.valorAnticipada === '' || body.valorAnticipada == null ? null : Number(body.valorAnticipada),
     valor_puerta: body.valorPuerta === '' || body.valorPuerta == null ? null : Number(body.valorPuerta),
     reserva_mesa: body.reservaMesa ? 1 : 0,
-    institucion: String(body.institucion || '').slice(0, 255),
+    institucion: String(body.institucion || '').trim().slice(0, 255) || null,
     fecha_desde: String(body.fechaDesde || '').slice(0, 10),
     fecha_hasta: String(body.fechaHasta || '').slice(0, 10),
     horario: String(body.horario || '21:00').slice(0, 8),
@@ -101,9 +101,6 @@ function validar(payload) {
   }
   if (payload.fecha_hasta < payload.fecha_desde) {
     throw new Error('La fecha hasta no puede ser anterior a la fecha desde.')
-  }
-  if (!payload.institucion) {
-    throw new Error('Marcá el lugar en el mapa para completar la institución.')
   }
 }
 

@@ -152,7 +152,7 @@ function payload_from_body($body) {
     'valor_anticipada' => ($body['valorAnticipada'] === '' || !isset($body['valorAnticipada'])) ? null : (float) $body['valorAnticipada'],
     'valor_puerta' => ($body['valorPuerta'] === '' || !isset($body['valorPuerta'])) ? null : (float) $body['valorPuerta'],
     'reserva_mesa' => !empty($body['reservaMesa']) ? 1 : 0,
-    'institucion' => substr((string) ($body['institucion'] ?? ''), 0, 255),
+    'institucion' => (($inst = substr(trim((string) ($body['institucion'] ?? '')), 0, 255)) === '' ? null : $inst),
     'fecha_desde' => substr((string) ($body['fechaDesde'] ?? ''), 0, 10),
     'fecha_hasta' => substr((string) ($body['fechaHasta'] ?? ''), 0, 10),
     'horario' => substr((string) ($body['horario'] ?? '21:00'), 0, 8),
@@ -171,9 +171,6 @@ function validar($payload) {
   }
   if ($payload['fecha_hasta'] < $payload['fecha_desde']) {
     fail(400, 'La fecha hasta no puede ser anterior a la fecha desde.');
-  }
-  if ($payload['institucion'] === '') {
-    fail(400, 'Marcá el lugar en el mapa para completar la institución.');
   }
 }
 

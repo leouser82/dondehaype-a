@@ -119,7 +119,7 @@ export default function NuevaPena() {
         provincia: place.provincia || prev.provincia,
         localidad: place.localidad || prev.localidad,
         ciudad: place.ciudad || prev.ciudad,
-        institucion: place.institucion || prev.institucion,
+        institucion: prev.institucion || place.institucion || '',
       }))
     } catch (err) {
       setError(err.message || 'No se pudo leer el lugar del mapa.')
@@ -131,8 +131,8 @@ export default function NuevaPena() {
   async function onSubmit(event) {
     event.preventDefault()
     setError('')
-    if (!form.provincia || !form.localidad || !form.ciudad || !form.institucion) {
-      setError('Marcá el lugar en el mapa para completar provincia, localidad, ciudad e institución.')
+    if (!form.provincia || !form.localidad || !form.ciudad) {
+      setError('Marcá el lugar en el mapa para completar provincia, localidad y ciudad.')
       return
     }
     if (form.lat == null || form.lng == null) {
@@ -229,9 +229,14 @@ export default function NuevaPena() {
             Ciudad
             <input value={form.ciudad} readOnly placeholder="Se completa con el mapa" />
           </label>
-          <label className="field locked">
+          <label className="field">
             Institución organizadora
-            <input value={form.institucion} readOnly placeholder="Se completa con el mapa" />
+            <input
+              value={form.institucion}
+              onChange={(e) => set('institucion', e.target.value)}
+              placeholder="Ej: Centro Tradicionalista El Algarrobo"
+              maxLength={255}
+            />
           </label>
         </div>
         {leyendoLugar ? <p className="hint">Leyendo el lugar del mapa…</p> : null}

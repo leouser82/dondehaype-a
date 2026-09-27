@@ -13,6 +13,7 @@ export default function Buscar() {
   const [provincia, setProvincia] = useState('')
   const [localidad, setLocalidad] = useState('')
   const [musico, setMusico] = useState('')
+  const [institucion, setInstitucion] = useState('')
   const [buscandoWeb, setBuscandoWeb] = useState(false)
 
   useEffect(() => suscribirPenas(setLocales), [])
@@ -20,7 +21,7 @@ export default function Buscar() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setBuscandoWeb(true)
-      buscarPenasWeb({ q, tipo, provincia, localidad, musico })
+      buscarPenasWeb({ q, tipo, provincia, localidad, musico, institucion })
         .then((list) => {
           recordarWeb(list)
           setWeb(list)
@@ -29,17 +30,17 @@ export default function Buscar() {
         .finally(() => setBuscandoWeb(false))
     }, 500)
     return () => clearTimeout(timer)
-  }, [q, tipo, provincia, localidad, musico])
+  }, [q, tipo, provincia, localidad, musico, institucion])
 
   const resultados = useMemo(() => {
-    const filtro = { q, tipo, provincia, localidad, musico }
+    const filtro = { q, tipo, provincia, localidad, musico, institucion }
     const seen = new Set()
     return [...locales, ...web].filter((pena) => {
       if (!pena?.id || seen.has(pena.id)) return false
       seen.add(pena.id)
       return estaVigente(pena) && coincideFiltro(pena, filtro)
     })
-  }, [locales, web, q, tipo, provincia, localidad, musico])
+  }, [locales, web, q, tipo, provincia, localidad, musico, institucion])
 
   return (
     <section className="page">
@@ -49,6 +50,11 @@ export default function Buscar() {
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en todo" />
         <input value={localidad} onChange={(e) => setLocalidad(e.target.value)} placeholder="Localidad o ciudad" />
         <input value={musico} onChange={(e) => setMusico(e.target.value)} placeholder="Músico o grupo" />
+        <input
+          value={institucion}
+          onChange={(e) => setInstitucion(e.target.value)}
+          placeholder="Institución organizadora"
+        />
         <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
           <option value="">Todos los tipos</option>
           {TIPOS_EVENTO.map((item) => (

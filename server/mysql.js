@@ -56,7 +56,7 @@ async function ensureTables(conn) {
       valor_anticipada DECIMAL(12, 2) NULL,
       valor_puerta DECIMAL(12, 2) NULL,
       reserva_mesa TINYINT(1) NOT NULL DEFAULT 0,
-      institucion VARCHAR(255) NOT NULL DEFAULT '',
+      institucion VARCHAR(255) NULL DEFAULT NULL,
       fecha_desde DATE NOT NULL,
       fecha_hasta DATE NOT NULL,
       horario VARCHAR(8) NOT NULL DEFAULT '21:00',

@@ -50,13 +50,15 @@ export function formatearFecha(iso) {
   return `${d}/${m}/${y}`
 }
 
-export function coincideFiltro(pena, { q = '', tipo = '', provincia = '', localidad = '', musico = '' } = {}) {
+export function coincideFiltro(pena, { q = '', tipo = '', provincia = '', localidad = '', musico = '', institucion = '' } = {}) {
   const texto = q.trim().toLowerCase()
   const musicoQ = musico.trim().toLowerCase()
   const locQ = localidad.trim().toLowerCase()
+  const instQ = institucion.trim().toLowerCase()
   if (tipo && pena.tipoEvento !== tipo) return false
   if (provincia && pena.provincia !== provincia) return false
   if (locQ && !`${pena.localidad || ''} ${pena.ciudad || ''}`.toLowerCase().includes(locQ)) return false
+  if (instQ && !`${pena.institucion || ''}`.toLowerCase().includes(instQ)) return false
   if (musicoQ) {
     const enMusicos = (pena.musicos || []).some((item) => String(item).toLowerCase().includes(musicoQ))
     const enNombre = `${pena.institucion || ''}`.toLowerCase().includes(musicoQ)
