@@ -71,6 +71,7 @@ function row_to_pena($row) {
     'provincia' => $row['provincia'] ?? '',
     'localidad' => $row['localidad'] ?? '',
     'ciudad' => $row['ciudad'] ?? '',
+    'calle' => $row['calle'] ?? '',
     'lat' => isset($row['lat']) ? (float) $row['lat'] : null,
     'lng' => isset($row['lng']) ? (float) $row['lng'] : null,
     'valorAnticipada' => $row['valor_anticipada'] === null ? null : (float) $row['valor_anticipada'],
@@ -147,6 +148,7 @@ function payload_from_body($body) {
     'provincia' => substr((string) ($body['provincia'] ?? ''), 0, 80),
     'localidad' => substr((string) ($body['localidad'] ?? ''), 0, 160),
     'ciudad' => substr((string) ($body['ciudad'] ?? ''), 0, 160),
+    'calle' => (($calle = substr(trim((string) ($body['calle'] ?? '')), 0, 255)) === '' ? null : $calle),
     'lat' => isset($body['lat']) ? (float) $body['lat'] : null,
     'lng' => isset($body['lng']) ? (float) $body['lng'] : null,
     'valor_anticipada' => ($body['valorAnticipada'] === '' || !isset($body['valorAnticipada'])) ? null : (float) $body['valorAnticipada'],
@@ -218,14 +220,14 @@ try {
     $flyer = save_flyer($body['flyerUrl'] ?? '', $newId);
     $stmt = $pdo->prepare(
       'INSERT INTO penas (
-        id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad,
+        id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad, calle,
         lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion,
         fecha_desde, fecha_hasta, horario, flyer_url
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     );
     $stmt->execute([
       $newId, $uid, $payload['tipo_evento'], $payload['musicos'], $payload['grupos_baile'],
-      $payload['provincia'], $payload['localidad'], $payload['ciudad'],
+      $payload['provincia'], $payload['localidad'], $payload['ciudad'], $payload['calle'],
       $payload['lat'], $payload['lng'], $payload['valor_anticipada'], $payload['valor_puerta'],
       $payload['reserva_mesa'], $payload['institucion'], $payload['fecha_desde'],
       $payload['fecha_hasta'], $payload['horario'], $flyer,
@@ -245,14 +247,14 @@ try {
     $flyer = !empty($body['flyerUrl']) ? save_flyer($body['flyerUrl'], $id) : $row['flyer_url'];
     $stmt = $pdo->prepare(
       'UPDATE penas SET
-        tipo_evento=?, musicos=?, grupos_baile=?, provincia=?, localidad=?, ciudad=?,
+        tipo_evento=?, musicos=?, grupos_baile=?, provincia=?, localidad=?, ciudad=?, calle=?,
         lat=?, lng=?, valor_anticipada=?, valor_puerta=?, reserva_mesa=?, institucion=?,
         fecha_desde=?, fecha_hasta=?, horario=?, flyer_url=?
        WHERE id=? AND user_uid=?'
     );
     $stmt->execute([
       $payload['tipo_evento'], $payload['musicos'], $payload['grupos_baile'],
-      $payload['provincia'], $payload['localidad'], $payload['ciudad'],
+      $payload['provincia'], $payload['localidad'], $payload['ciudad'], $payload['calle'],
       $payload['lat'], $payload['lng'], $payload['valor_anticipada'], $payload['valor_puerta'],
       $payload['reserva_mesa'], $payload['institucion'], $payload['fecha_desde'],
       $payload['fecha_hasta'], $payload['horario'], $flyer, $id, $uid,

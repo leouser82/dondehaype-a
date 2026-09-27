@@ -55,18 +55,8 @@ export async function reverseGeo(lat, lng) {
   )
   if (nominatim?.address) {
     const a = nominatim.address
-    const institucion =
-      String(nominatim.name || '').trim() ||
-      a.amenity ||
-      a.tourism ||
-      a.leisure ||
-      a.club ||
-      [a.road, a.house_number].filter(Boolean).join(' ') ||
-      a.suburb ||
-      a.neighbourhood ||
-      ''
     return {
-      institucion: String(institucion).trim(),
+      calle: [a.road, a.house_number].filter(Boolean).join(' ').trim(),
       localidad: a.suburb || a.neighbourhood || a.town || a.village || a.city_district || a.city || '',
       ciudad: a.city || a.town || a.village || a.municipality || '',
       provincia: matchProvincia(a.state || a.province || ''),
@@ -79,7 +69,7 @@ export async function reverseGeo(lat, lng) {
   )
   const props = photon?.features?.[0]?.properties || {}
   return {
-    institucion: String(props.name || [props.street, props.housenumber].filter(Boolean).join(' ') || '').trim(),
+    calle: [props.street, props.housenumber].filter(Boolean).join(' ').trim(),
     localidad: props.district || props.locality || props.city || '',
     ciudad: props.city || props.town || '',
     provincia: matchProvincia(props.state || ''),

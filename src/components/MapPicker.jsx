@@ -95,7 +95,7 @@ export default function MapPicker({ lat, lng, onChange, locateUser = true }) {
     <div className="map-wrap">
       <div ref={holder} className="map-canvas" />
       <p className="hint">
-        El mapa se centra en tu ubicación. Hacé clic donde es el evento: los campos de arriba se completan solos.
+        El mapa se centra en tu ubicación. Hacé clic donde es el evento: se actualizan provincia, localidad, ciudad y calle.
       </p>
       {lat && lng ? (
         <p className="coords">

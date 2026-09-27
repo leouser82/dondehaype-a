@@ -19,8 +19,9 @@ export default function PenaCard({ pena, origen }) {
       <div className="body">
         <h3>{pena.institucion || `${pena.tipoEvento} en ${pena.localidad}`}</h3>
         <p className="lugar">
-          {pena.localidad}
-          {pena.ciudad && pena.ciudad !== pena.localidad ? ` · ${pena.ciudad}` : ''} · {pena.provincia}
+          {[pena.calle, pena.localidad, pena.ciudad && pena.ciudad !== pena.localidad ? pena.ciudad : '', pena.provincia]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
         <p className="cuando">
           {formatearFecha(pena.fechaDesde)}

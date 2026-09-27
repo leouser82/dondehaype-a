@@ -43,10 +43,11 @@ export default function DetallePena() {
     <section className="page detalle">
       {pena.flyerUrl ? <img className="detalle-flyer" src={pena.flyerUrl} alt={`Flyer de ${pena.institucion}`} /> : null}
       <p className="kicker">{pena.tipoEvento} {vigente ? '· vigente' : '· ya pasó'}</p>
-      <h1>{pena.institucion}</h1>
+      <h1>{pena.institucion || pena.calle || `${pena.tipoEvento} en ${pena.localidad}`}</h1>
       <p className="lugar">
-        {pena.localidad}
-        {pena.ciudad && pena.ciudad !== pena.localidad ? `, ${pena.ciudad}` : ''} · {pena.provincia}
+        {[pena.calle, pena.localidad, pena.ciudad && pena.ciudad !== pena.localidad ? pena.ciudad : '', pena.provincia]
+          .filter(Boolean)
+          .join(' · ')}
       </p>
       {pena.resumen ? <p className="lead">{pena.resumen}</p> : null}
       <p>
@@ -62,6 +63,10 @@ export default function DetallePena() {
         <div>
           <dt>En puerta</dt>
           <dd>{formatearPrecio(pena.valorPuerta)}</dd>
+        </div>
+        <div>
+          <dt>Institución organizadora</dt>
+          <dd>{pena.institucion || '—'}</dd>
         </div>
         <div>
           <dt>Reserva de mesa</dt>

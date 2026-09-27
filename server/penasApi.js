@@ -77,6 +77,7 @@ function payloadFromBody(body) {
     provincia: String(body.provincia || '').slice(0, 80),
     localidad: String(body.localidad || '').slice(0, 160),
     ciudad: String(body.ciudad || '').slice(0, 160),
+    calle: String(body.calle || '').trim().slice(0, 255) || null,
     lat: Number(body.lat),
     lng: Number(body.lng),
     valor_anticipada: body.valorAnticipada === '' || body.valorAnticipada == null ? null : Number(body.valorAnticipada),
@@ -176,10 +177,10 @@ export async function handlePenasApi(req, res) {
     const flyerUrl = saveFlyer(body.flyerUrl, id)
     await pool.query(
       `INSERT INTO penas (
-        id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad,
+        id, user_uid, tipo_evento, musicos, grupos_baile, provincia, localidad, ciudad, calle,
         lat, lng, valor_anticipada, valor_puerta, reserva_mesa, institucion,
         fecha_desde, fecha_hasta, horario, flyer_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         uid,
@@ -189,6 +190,7 @@ export async function handlePenasApi(req, res) {
         payload.provincia,
         payload.localidad,
         payload.ciudad,
+        payload.calle,
         payload.lat,
         payload.lng,
         payload.valor_anticipada,
@@ -234,7 +236,7 @@ export async function handlePenasApi(req, res) {
     const flyerUrl = body.flyerUrl ? saveFlyer(body.flyerUrl, id) : current[0].flyer_url
     await pool.query(
       `UPDATE penas SET
-        tipo_evento = ?, musicos = ?, grupos_baile = ?, provincia = ?, localidad = ?, ciudad = ?,
+        tipo_evento = ?, musicos = ?, grupos_baile = ?, provincia = ?, localidad = ?, ciudad = ?, calle = ?,
         lat = ?, lng = ?, valor_anticipada = ?, valor_puerta = ?, reserva_mesa = ?, institucion = ?,
         fecha_desde = ?, fecha_hasta = ?, horario = ?, flyer_url = ?
        WHERE id = ? AND user_uid = ?`,
@@ -245,6 +247,7 @@ export async function handlePenasApi(req, res) {
         payload.provincia,
         payload.localidad,
         payload.ciudad,
+        payload.calle,
         payload.lat,
         payload.lng,
         payload.valor_anticipada,

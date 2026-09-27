@@ -14,6 +14,7 @@ const VACIO = {
   provincia: '',
   localidad: '',
   ciudad: '',
+  calle: '',
   lat: null,
   lng: null,
   valorAnticipada: '',
@@ -64,6 +65,7 @@ export default function NuevaPena() {
           provincia: pena.provincia || '',
           localidad: pena.localidad || '',
           ciudad: pena.ciudad || '',
+          calle: pena.calle || '',
           lat: pena.lat,
           lng: pena.lng,
           valorAnticipada: pena.valorAnticipada ?? '',
@@ -116,10 +118,10 @@ export default function NuevaPena() {
         ...prev,
         lat,
         lng,
-        provincia: place.provincia || prev.provincia,
-        localidad: place.localidad || prev.localidad,
-        ciudad: place.ciudad || prev.ciudad,
-        institucion: prev.institucion || place.institucion || '',
+        provincia: place.provincia || '',
+        localidad: place.localidad || '',
+        ciudad: place.ciudad || '',
+        calle: place.calle || '',
       }))
     } catch (err) {
       setError(err.message || 'No se pudo leer el lugar del mapa.')
@@ -229,14 +231,9 @@ export default function NuevaPena() {
             Ciudad
             <input value={form.ciudad} readOnly placeholder="Se completa con el mapa" />
           </label>
-          <label className="field">
-            Institución organizadora
-            <input
-              value={form.institucion}
-              onChange={(e) => set('institucion', e.target.value)}
-              placeholder="Ej: Centro Tradicionalista El Algarrobo"
-              maxLength={255}
-            />
+          <label className="field locked">
+            Calle
+            <input value={form.calle} readOnly placeholder="Se completa con el mapa" />
           </label>
         </div>
         {leyendoLugar ? <p className="hint">Leyendo el lugar del mapa…</p> : null}
@@ -292,6 +289,15 @@ export default function NuevaPena() {
               step="100"
               value={form.valorPuerta}
               onChange={(e) => set('valorPuerta', e.target.value)}
+            />
+          </label>
+          <label className="field">
+            Institución organizadora
+            <input
+              value={form.institucion}
+              onChange={(e) => set('institucion', e.target.value)}
+              placeholder="Ej: Centro Tradicionalista El Algarrobo"
+              maxLength={255}
             />
           </label>
         </div>

@@ -51,6 +51,7 @@ async function ensureTables(conn) {
       provincia VARCHAR(80) NOT NULL DEFAULT '',
       localidad VARCHAR(160) NOT NULL DEFAULT '',
       ciudad VARCHAR(160) NOT NULL DEFAULT '',
+      calle VARCHAR(255) NULL DEFAULT NULL,
       lat DECIMAL(10, 6) NOT NULL,
       lng DECIMAL(10, 6) NOT NULL,
       valor_anticipada DECIMAL(12, 2) NULL,
@@ -76,6 +77,9 @@ async function connectOnce(cfg) {
     const conn = await next.getConnection()
     try {
       await ensureTables(conn)
+      await conn.query('ALTER TABLE penas ADD COLUMN calle VARCHAR(255) NULL DEFAULT NULL AFTER ciudad').catch((error) => {
+        if (error?.code !== 'ER_DUP_FIELDNAME' && error?.errno !== 1060) throw error
+      })
     } finally {
       conn.release()
     }
@@ -124,6 +128,7 @@ export function rowToPena(row) {
     provincia: row.provincia || '',
     localidad: row.localidad || '',
     ciudad: row.ciudad || '',
+    calle: row.calle || '',
     lat: row.lat == null ? null : Number(row.lat),
     lng: row.lng == null ? null : Number(row.lng),
     valorAnticipada: row.valor_anticipada == null ? null : Number(row.valor_anticipada),

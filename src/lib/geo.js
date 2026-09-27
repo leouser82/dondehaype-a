@@ -67,6 +67,7 @@ export function coincideFiltro(pena, { q = '', tipo = '', provincia = '', locali
   if (texto) {
     const hay = [
       pena.institucion,
+      pena.calle,
       pena.localidad,
       pena.ciudad,
       pena.provincia,
