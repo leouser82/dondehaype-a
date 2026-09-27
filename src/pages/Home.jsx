@@ -75,7 +75,7 @@ export default function Home() {
   return (
     <section className="page">
       <div className="hero-rural">
-        <p className="kicker">Alrededor del fogón</p>
+        <p className="kicker">Alrededor del baile</p>
         <h1>Peñas y eventos cerca tuyo</h1>
         <p className="lead">
           Entrá y mirá qué baile, peña, doma o tertulia sigue vigente cerca tuyo.

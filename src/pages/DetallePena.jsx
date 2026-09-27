@@ -22,7 +22,7 @@ export default function DetallePena() {
   }, [id])
 
   if (!pena && error) return <section className="page">{error}</section>
-  if (!pena) return <section className="page">Cargando el fogón…</section>
+  if (!pena) return <section className="page">Cargando el baile…</section>
 
   const vigente = estaVigente(pena)
   const mia = esMia(pena, usuario)

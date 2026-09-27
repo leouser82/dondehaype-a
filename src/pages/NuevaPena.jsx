@@ -98,7 +98,7 @@ export default function NuevaPena() {
     return (
       <section className="page">
         <h1>{id ? 'Editar peña' : 'Publicar una peña'}</h1>
-        <p className="lead">Para cargar un fogón tenés que hacer login. Elegí Google para entrar.</p>
+        <p className="lead">Para cargar un baile tenés que hacer login. Elegí Google para entrar.</p>
         <LoginMenu variant="page" />
       </section>
     )
@@ -164,15 +164,15 @@ export default function NuevaPena() {
     }
   }
 
-  if (cargandoPena) return <section className="page">Cargando el fogón…</section>
+  if (cargandoPena) return <section className="page">Cargando el baile…</section>
 
   return (
     <section className="page form-page">
       <h1>{id ? 'Editar peña' : 'Publicar una peña'}</h1>
       <p className="lead">
         {id
-          ? 'Actualizá los datos del fogón. El lugar se cambia haciendo clic en el mapa.'
-          : 'Completá los datos del fogón. El mapa se ubica donde estás; al marcar el evento se completan los campos de arriba.'}
+          ? 'Actualizá los datos del baile. El lugar se cambia haciendo clic en el mapa.'
+          : 'Completá los datos del baile. El mapa se ubica donde estás; al marcar el evento se completan los campos de arriba.'}
       </p>
       <form className="pena-form" onSubmit={onSubmit}>
         <label className="field">

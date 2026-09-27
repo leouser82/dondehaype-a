@@ -13,7 +13,7 @@ export default function Header() {
         </span>
         <span>
           <strong>Donde hay peña</strong>
-          <em>el fogón más cercano</em>
+          <em>el baile más cercano</em>
         </span>
       </Link>
       <nav>

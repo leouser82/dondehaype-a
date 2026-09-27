@@ -22,7 +22,7 @@ export default function App() {
         </Routes>
       </main>
       <footer>
-        Donde hay peña · colaborativo, rural y de fogón. Las peñas vencidas se ocultan solas.
+        Donde hay peña · colaborativo, rural y de baile. Las peñas vencidas se ocultan solas.
       </footer>
     </div>
   )

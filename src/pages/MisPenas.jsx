@@ -66,7 +66,7 @@ export default function MisPenas() {
         </Link>
       </p>
       {error ? <p className="error">{error}</p> : null}
-      {cargandoLista ? <p className="hint">Cargando tus fogones…</p> : null}
+      {cargandoLista ? <p className="hint">Cargando tus bailes…</p> : null}
       {!cargandoLista && !error && penas.length === 0 ? (
         <p className="empty">Todavía no cargaste peñas. Publicá la primera.</p>
       ) : null}
